@@ -85,6 +85,12 @@ func (monitor *Monitor) createTracker(logConfig LogConfig) *LogTracker {
 		ReOpen: true,
 		Follow: true,
 
+		// Start from the end
+		Location: &tail.SeekInfo{
+			Offset: 0,
+			Whence: 2,
+		},
+
 		MustExist:   logConfig.MustExist,
 		Poll:        logConfig.Poll,
 		Pipe:        logConfig.Pipe,
