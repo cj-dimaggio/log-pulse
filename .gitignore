@@ -1,0 +1,6 @@
+log-pulse
+log-pulse-test
+
+integration-test-unix
+!integration-test-unix/run
+!integration-test-unix/log-pulse.yml
