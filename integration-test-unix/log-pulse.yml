@@ -1,0 +1,40 @@
+# Touches a file on log line match
+- file: ./1.log
+  pattern: ^Match
+  mustExist: true
+  command:
+    program: touch
+    args:
+      - ./matched-1
+
+# Touches a file on timeout
+- file: ./2.log
+  pattern: ^Match
+  timeout: 2
+  timeoutOnce: true
+  timeoutCommand:
+    program: touch
+    args:
+      - ./timedout-2
+
+# Touches a file on log line match and on timeout. Log file doesn't exist on startup, should still init
+- file: ./3.log
+  pattern: Suffix$
+  timeout: 2
+  command:
+    program: touch
+    args:
+      - ./matched-3
+  timeoutCommand:
+    program: touch
+    args:
+      - ./timedout-3
+
+# Fails to initialize because it doesn't exist at startup
+- file: ./4.log
+  pattern: .*
+  mustExist: true
+  command:
+    program: touch
+    args:
+      - ./matched-4

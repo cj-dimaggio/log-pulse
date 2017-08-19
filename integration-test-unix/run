@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+
+cd $(dirname "$0")
+cwd=$(pwd)
+
+# Some color variables to be used with echo-color and echo-message
+blue='\033[0;34m'
+yellow='\033[0;33m'
+green='\033[0;32m'
+red='\033[0;31m'
+
+# Echo a message with color
+function echo-color() {
+    color=$1
+    message=${@:2}
+
+    nocolor='\033[0m'
+    echo -e "${color}${message}${nocolor}"
+}
+
+# Wrap echo-color with some fanfare
+echo-message() {
+    echo-color $1 "============================================"
+    echo-color $1 ${@:2}
+    echo-color $1 "============================================"
+}
+
+function echo-info() {
+    echo-color $yellow $@
+}
+
+function echo-test() {
+    echo-message $blue $@
+    echo
+}
+
+function echo-error() {
+    echo-message $red $@
+}
+
+function echo-success() {
+    echo-color $green $@
+}
+
+function setup() {
+    echo-info "Building..."
+    cd ../
+    go build -o "$cwd/log-pulse-test"
+    cd $cwd
+
+    rm 1.log 2> /dev/null
+    rm 2.log 2> /dev/null
+    rm 3.log 2> /dev/null
+    rm 4.log 2> /dev/null
+
+    touch 1.log
+    touch 2.log
+
+    ./log-pulse-test -c log-pulse.yml &
+    sleep 3
+
+}
+
+function teardown() {
+    echo-info "Cleaning up..."
+    kill %1
+    rm ./log-pulse-test 2> /dev/null
+    rm 1.log 2> /dev/null
+    rm 2.log 2> /dev/null
+    rm 3.log 2> /dev/null
+    rm 4.log 2> /dev/null
+
+    rm matched-1 2> /dev/null
+    rm matched-3 2> /dev/null
+    rm matched-4 2> /dev/null
+    rm timedout-2 2> /dev/null
+    rm timedout-3 2> /dev/null
+}
+
+function assert-file() {
+    if [ ! -f $1 ]; then
+        echo-error "Expected '$1' to exist but it doesn't! Exiting..."
+        exit
+    else
+        echo-success "'$1' exists, like we expected"
+    fi
+}
+
+function assert-no-file() {
+    if [ -f $1 ]; then
+        echo-error "Expected '$1' not to exist but it does! Exiting..."
+        exit
+    else
+        echo-success "'$1' doesn't exists, like we expected"
+    fi
+}
+
+setup
+trap teardown EXIT
+
+echo-test "Testing 1.log"
+
+echo-info "Sending non matching line"
+rm matched-1 2> /dev/null
+echo "NoMatch Sorry" >> 1.log
+sleep .1
+assert-no-file matched-1
+
+echo-info "Sending matching line"
+echo "Match Cool" >> 1.log
+sleep .1
+assert-file matched-1
+
+echo-test "Testing 2.log"
+rm timedout-2 2> /dev/null
+echo "Match Cool" >> 2.log
+assert-no-file timedout-2
+echo-info "Waiting for timeout"
+sleep 2.2
+assert-file timedout-2
+
+echo-info "Deleting file and making sure it doesn't come back"
+rm timedout-2
+sleep 2.2
+assert-no-file timedout-2
+
+echo-info "Resetting timer and making sure timeout executed again"
+echo "Match Cool" >> 2.log
+sleep 2.2
+assert-file timedout-2
+
+echo-test "Testing 3.log"
+rm timedout-3 2> /dev/null
+
+echo-info "Sending non matching line"
+rm matched-3 2> /dev/null
+echo "ItsASuffixNot" >> 3.log
+sleep .1
+assert-no-file matched-3
+
+echo-info "Sending matching line"
+echo "ItsASuffix" >> 3.log
+sleep .1
+assert-file matched-3
+
+rm timedout-3 2> /dev/null
+assert-no-file timedout-3
+echo-info "Waiting for timeout"
+sleep 2.2
+assert-file timedout-3
+
+echo-test "Testing 4.log"
+echo-info "Sending matching string"
+echo "Something" >> 4.log
+sleep .1
+assert-no-file matched-4
+
+
+echo
+echo-message $green "Tests Pass!"
