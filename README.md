@@ -85,6 +85,19 @@ Of course YAML is a superset of JSON, so the configuration can also be written a
 ```
 if one is more comfortable with JSON.
 
+## Building
+Log Pulse is a raw Go application so it should be trivial to build both for your own platform and for cross-platform, assuming [you have a Go environment properly setup](https://golang.org/doc/install). To compile for your own platform just run:
+```
+go build
+```
+which will build a `./log-pulse` binary.
+
+To cross-compile with Go > 1.5 you can use the GOOS and GOARCH environment variables:
+```
+GOOS=windows GOARCH=amd64 go build
+GOOS=darwin GOARCH=amd64 go build
+```
+
 ## Testing
 Traditional Go unit tests have been written and can be run via:
 ```
