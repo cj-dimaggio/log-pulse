@@ -9,22 +9,22 @@ import (
 
 // CommandConfig is the configuration of a command to execute
 type CommandConfig struct {
-	Program string
-	Args    []string
+	Program string   `yaml:"program"`
+	Args    []string `yaml:"args"`
 }
 
 // LogConfig contains all of the configuration options for each
 // log entry
 type LogConfig struct {
 	// The log file to monitor
-	File string
+	File string `yaml:"file"`
 	// The regex pattern to look for in lines
-	Pattern string
+	Pattern string `yaml:"pattern"`
 	// The system command to execute when the regex pattern matches
-	Command CommandConfig
+	Command CommandConfig `yaml:"command"`
 
 	// The amount of time (in seconds) to wait for the pattern to appear before executing TimeoutCommand
-	Timeout int
+	Timeout int `yaml:"timeout"`
 
 	// Should the timout command only execute once until a new pattern shows up? By default it will execute
 	// over and over, using Timeout as an interval.
