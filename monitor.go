@@ -8,6 +8,7 @@ import (
 	"github.com/hpcloud/tail"
 )
 
+// NoTrackedFilesError signifies that no files could be tracked by the Monitor
 type NoTrackedFilesError struct{}
 
 func (err NoTrackedFilesError) Error() string {
