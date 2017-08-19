@@ -1,5 +1,6 @@
 log-pulse
-log-pulse-test
+log-pulse.exe
+log-pulse-*
 
 integration-test-unix
 !integration-test-unix/run
