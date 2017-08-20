@@ -165,7 +165,7 @@ var (
 	DefaultProspectorConfig = prospectorConfig{
 		Type:          harvester.LogType,
 		TailFiles:     true,
-		Backoff:       250 * time.Millisecond,
+		Backoff:       200 * time.Millisecond,
 		BackoffFactor: 1,
 		MaxBackoff:    1 * time.Second,
 		ScanFrequency: 3 * time.Second,

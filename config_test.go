@@ -77,7 +77,7 @@ func TestSetProspectorDefaults(t *testing.T) {
 
 	assert.Equal(t, "log", testConfig.Type)
 	assert.Equal(t, true, testConfig.TailFiles)
-	assert.Equal(t, 250*time.Millisecond, testConfig.Backoff)
+	assert.Equal(t, 200*time.Millisecond, testConfig.Backoff)
 	assert.Equal(t, 1, testConfig.BackoffFactor)
 	assert.Equal(t, 1*time.Second, testConfig.MaxBackoff)
 	assert.Equal(t, 3*time.Second, testConfig.ScanFrequency)
