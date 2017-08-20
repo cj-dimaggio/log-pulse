@@ -1,40 +1,36 @@
+# Purposely doesn't use consistent formatting
+
 # Touches a file on log line match
-- file: ./1.log
+- paths: ["./1.log"]
   pattern: ^Match
-  mustExist: true
-  command:
-    program: touch
-    args:
-      - ./matched-1
+  command.program: touch
+  command.args: ./matched-1
 
 # Touches a file on timeout
-- file: ./2.log
+- paths: 
+    - ./2.log
   pattern: ^Match
-  timeout: 2
-  timeoutOnce: true
-  timeoutCommand:
-    program: touch
-    args:
-      - ./timedout-2
+  timeout:
+    interval: 1.5s
+    once: true
+    command:
+      program: touch
+      args:
+        - ./timedout-2
 
 # Touches a file on log line match and on timeout. Log file doesn't exist on startup, should still init
-- file: ./3.log
+- paths: [./3.log]
   pattern: Suffix$
-  timeout: 2
+  timeout.interval: 2
+  timeout.command.program: touch
+  timeout.command.args:
+    - ./timedout-3
   command:
     program: touch
     args:
       - ./matched-3
-  timeoutCommand:
-    program: touch
-    args:
-      - ./timedout-3
 
-# Fails to initialize because it doesn't exist at startup
-- file: ./4.log
+- paths: [./4.*]
   pattern: .*
-  mustExist: true
-  command:
-    program: touch
-    args:
-      - ./matched-4
+  command.program: touch
+  command.args: [./matched-4]

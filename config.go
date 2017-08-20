@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/elastic/beats/filebeat/harvester"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 )
@@ -162,6 +163,7 @@ var (
 	// pass along for Prospector configuration to make file process
 	// happen a bit faster
 	DefaultProspectorConfig = prospectorConfig{
+		Type:          harvester.LogType,
 		TailFiles:     true,
 		Backoff:       250 * time.Millisecond,
 		BackoffFactor: 1,
@@ -173,6 +175,7 @@ var (
 // prospectorConfig is a recreation of some of the Prospector configs we want
 // to override defaults for.
 type prospectorConfig struct {
+	Type          string        `config:"type"`
 	TailFiles     bool          `config:"tail_files"`
 	Backoff       time.Duration `config:"backoff" validate:"min=0,nonzero"`
 	BackoffFactor int           `config:"backoff_factor" validate:"min=1"`

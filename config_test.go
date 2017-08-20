@@ -63,8 +63,7 @@ func TestParseConfig(t *testing.T) {
 
 func TestSetProspectorDefaults(t *testing.T) {
 	var data = `
-- type: log
-  paths: ["/var/tests/*.log"]
+- paths: ["/var/tests/*.log"]
   pattern: .*
 `
 	config, rawConfig, err := ParseConfig([]byte(data))
@@ -76,6 +75,7 @@ func TestSetProspectorDefaults(t *testing.T) {
 	err = rawConfig[0].Unpack(&testConfig)
 	assert.Nil(t, err)
 
+	assert.Equal(t, "log", testConfig.Type)
 	assert.Equal(t, true, testConfig.TailFiles)
 	assert.Equal(t, 250*time.Millisecond, testConfig.Backoff)
 	assert.Equal(t, 1, testConfig.BackoffFactor)
