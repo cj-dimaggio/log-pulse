@@ -52,10 +52,11 @@ func ParseConfigFile(filename string) (config Config, err error) {
 	}
 
 	err = yaml.Unmarshal(data, &config)
+
 	return
 }
 
-// Execute runs the configured command
+// Cmd creates an exec.Cmd from the config
 func (commandConfig CommandConfig) Cmd() *exec.Cmd {
 	return exec.Command(commandConfig.Program, commandConfig.Args...)
 }
