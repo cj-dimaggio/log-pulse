@@ -2,6 +2,8 @@ log-pulse
 log-pulse.exe
 log-pulse-*
 
+vendor
+
 integration-test-unix/*
 !integration-test-unix/log-pulse.yml
 !integration-test-unix/run

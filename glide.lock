@@ -1,0 +1,123 @@
+hash: 570108fb05fba5576552d03cb1580bb5a12df617b54d2f29948cb03889cecd3f
+updated: 2017-08-20T02:11:21.685826458-04:00
+imports:
+- name: github.com/dustin/go-humanize
+  version: 259d2a102b871d17f30e3cd9881a642961a1e486
+- name: github.com/elastic/beats
+  version: 56520e3d897b416a84e8ce03825720b0afdbf6cf
+  subpackages:
+  - filebeat/channel
+  - filebeat/config
+  - filebeat/harvester
+  - filebeat/harvester/encoding
+  - filebeat/harvester/reader
+  - filebeat/input/file
+  - filebeat/prospector
+  - filebeat/prospector/log
+  - filebeat/prospector/redis
+  - filebeat/prospector/stdin
+  - filebeat/prospector/udp
+  - filebeat/registrar
+  - filebeat/util
+  - libbeat/cfgfile
+  - libbeat/common
+  - libbeat/common/atomic
+  - libbeat/common/cfgwarn
+  - libbeat/common/dtfmt
+  - libbeat/common/file
+  - libbeat/common/jsontransform
+  - libbeat/common/match
+  - libbeat/common/op
+  - libbeat/common/streambuf
+  - libbeat/logp
+  - libbeat/monitoring
+  - libbeat/outputs
+  - libbeat/outputs/codec
+  - libbeat/outputs/codec/json
+  - libbeat/outputs/transport
+  - libbeat/paths
+  - libbeat/plugin
+  - libbeat/processors
+  - libbeat/publisher
+  - libbeat/publisher/bc/publisher
+  - libbeat/publisher/beat
+  - libbeat/publisher/broker
+  - libbeat/publisher/pipeline
+  - libbeat/testing
+- name: github.com/elastic/go-ucfg
+  version: ec8488a52542c0c51e42e8ea204dcaff400bc644
+  subpackages:
+  - cfgutil
+  - flag
+  - internal/parse
+  - json
+  - yaml
+- name: github.com/fatih/color
+  version: 67c513e5729f918f5e69786686770c27141a4490
+- name: github.com/garyburd/redigo
+  version: b925df3cc15d8646e9b5b333ebaf3011385aba11
+  subpackages:
+  - internal
+  - redis
+- name: github.com/joeshaw/multierror
+  version: 69b34d4ec901851247ae7e77d33909caf9df99ed
+- name: github.com/mattn/go-colorable
+  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
+  repo: https://github.com/mattn/go-colorable
+- name: github.com/mattn/go-isatty
+  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
+  repo: https://github.com/mattn/go-isatty
+- name: github.com/mitchellh/hashstructure
+  version: 2bca23e0e452137f789efbc8610126fd8b94f73b
+- name: github.com/pkg/errors
+  version: c605e284fe17294bda444b34710735b29d1a9d90
+- name: github.com/satori/go.uuid
+  version: 5bf94b69c6b68ee1b541973bb8e1144db23a194b
+- name: github.com/urso/go-structform
+  version: a59a4e97c96431f4ad25ed3bd027981f2e0ff5c2
+  subpackages:
+  - gotype
+  - internal/unsafe
+  - json
+- name: golang.org/x/net
+  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
+  subpackages:
+  - proxy
+- name: golang.org/x/sys
+  version: e24f485414aeafb646f6fca458b0bf869c0880a1
+  repo: https://go.googlesource.com/sys
+  subpackages:
+  - unix
+- name: golang.org/x/text
+  version: e56139fd9c5bc7244c76116c68e500765bb6db6b
+  subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/htmlindex
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
+  - internal/tag
+  - internal/utf8internal
+  - language
+  - runes
+  - transform
+- name: gopkg.in/yaml.v2
+  version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert

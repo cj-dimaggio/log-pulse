@@ -8,59 +8,76 @@ log-pulse -c /etc/log-pulse.yml
 log-pulse --config=/etc/log-pulse.yml
 ```
 
-The configuration file itself defines a list of log files to track and the logic to use when parsing it:
+The configuration file itself defines a list of "collectors"; logical units that monitor and tail groups of paths to process and tail their inputs in semi real-time.
+Configuration looks like:
 ```
+# The top level element is a list
 -
-  # The path to the log file to track and tail (required)
-  file: /var/log/nginx.log
+  # Each element in the list denotes one or more files whose inputs you'd like
+  # to track
+
+  # Denotes which files should be tracked. (required)
+  # You can specify a list of individual files or you can use globbing
+  paths:
+    - /usr/local/var/nginx.log
+    - /var/log/*.log
 
   # The regular expression pattern to match incoming lines against (required)
   pattern: ^Begins-With
 
-  # Command to run when a line matching the pattern comes in (optional)
+  # Command to be run when a line matching the pattern comes in from any of the tracked
+  # files (optional)
   command:
     # command name or path to execute
     # (Go will try to expand program names to paths, such as "touch" => "/usr/bin/touch", automatically for you)
     program: /usr/bin/touch
-    # List of arguments to be passed to the program
+    # List of arguments to be passed to the executing program
     args:
       - /tmp/pattern-matched
 
-  # Time, in seconds, to wait for a pattern before triggering a timeout (optional)
-  timeout: 30
+  # Configures actions to be taken if the pattern does not match and of the incoming
+  # data for a certain period of time. (optional)
+  timeout:
+    # The interval to wait for a pattern to match an log line, after which the timeout
+    # command will be executed.
+    # The value should be parsable by https://golang.org/pkg/time/#ParseDuration
+    # (ie: 30s => "30 Seconds", 1h => "1 hour". Lower values are also allowed such as
+    # 300ms but the log aggregation is usually relativly too slow for sub-second duration
+    # to be reliable)
+    interval: 30s
 
-  # Command to be executed when a timeout occurs (optional)
-  timeoutCommand:
-    program: /usr/bin/touch
-    args:
-      - /tmp/timed-out
+    # The command to execute when a timeout occurs
+    command:
+      program: /usr/bin/touch
+      args:
+        - /tmp/timed-out
 
-  # By default "timeout" is used as a kind of interval; so for every N seconds without seeing a pattern
-  # the timeoutCommand will execute. 'timeoutOnce' allows you to override this behavior so that the command
-  # only executes *once* until it see's the pattern again (at which point the timer resets)
-  timeoutOnce: true
-
-  # By default if log-pulse is configured for a file that doesn't exist yet the goroutine will wait in
-  # the background until it does and start tailing it. 'mustExist' supresses that behavior and will not
-  # bother tracking the file if it doesn't exist on startup.
-  mustExist: true
-
-  # Allows you to tell the https://github.com/hpcloud/tail to use it's poll strategy.
-  poll: false
-
-  # Tells https://github.com/hpcloud/tail that the file is a fifo named pipe
-  pipe: false
-
-  # Any non-zero number tells https://github.com/hpcloud/tail to split long lines at this max
-  maxLineSize: 0
-
+    # By default "timeout" is used as a kind of interval; so for every N seconds without seeing a pattern
+    # the timeout.command will execute. 'timeout.once' allows you to override this behavior so that the command
+    # only executes *once* until it see's the pattern again (at which point the timer resets)
+    once: true
 ```
 
-Of course YAML is a superset of JSON, so the configuration can also be written as:
+Log Pulse uses [ucfg](https://github.com/elastic/go-ucfg) for its configuration, which also supports dot notation, so the previous could also be written as:
+```
+- paths: [/usr/local/var/nginx.log, /var/log/*.log]
+  pattern: ^Begins-With
+  command.program: /usr/bin/touch
+  command.args: [/tmp/pattern-matched]
+  timeout.interval: 30s
+  timeout.command.program: /usr/bin/touch
+  timeout.command.args: [/tmp/timed-out]
+  timeout.once: true
+```
+
+And of course YAML is a superset of JSON, so if you're more comfortable with that format you can equally write:
 ```
 [
   {
-    "file": "/var/log/nginx.log",
+    "paths": [
+      "/usr/local/var/nginx.log",
+      "/var/log/*.log"
+    ],
     "pattern": "^Begins-With",
     "command": {
       "program": "/usr/bin/touch",
@@ -68,25 +85,39 @@ Of course YAML is a superset of JSON, so the configuration can also be written a
         "/tmp/pattern-matched"
       ]
     },
-    "timeout": 30,
-    "timeoutCommand": {
-      "program": "/usr/bin/touch",
-      "args": [
-        "/tmp/timed-out"
-      ]
-    },
-    "timeoutOnce": true,
-    "mustExist": true,
-    "poll": false,
-    "pipe": false,
-    "maxLineSize": 0
+    "timeout": {
+      "interval": "30s",
+      "command": {
+        "program": "/usr/bin/touch",
+        "args": [
+          "/tmp/timed-out"
+        ]
+      },
+      "once": true
+    }
   }
 ]
 ```
-if one is more comfortable with JSON.
+
+### Advanced Configuration
+Log Pulse is built using large components of [Filebeat](https://github.com/elastic/beats). In fact, each element in a Log Pulse array is essentially just a wrapper around a FileBeat "Prospector" and [all of the configurations available for one](https://www.elastic.co/guide/en/beats/filebeat/current/configuration-filebeat-options.html) are equally available here. Most of these don't make much sense in the context of Log Pulse (such as "exclude_lines", "fields", etc) but you're free to set them, along with the more advanced features that dictate how aggressively your files are polled:
+```
+- paths: [/tmp/test.log]
+  pattern: .*
+  scan_frequency: 5s
+  max_backoff: 2s
+```
+
+Because of the responsive nature of Log Pulse you'll have to judge for yourself how close to real-time you need your results against how hard you want to hit your filesystem. Log Pulse overrides some of Filebeat's defaults to make the file collection more responsive out of the box and these can be viewed in the `config.go` file under the `DefaultProspectorConfig` variable.
+
+In fact, you're not even necessarily limited to using log file for input. Filebeat supports a number of input types including Redis, Stdin, and UDP which can be changed by changing the "type" field from its default "log" and all of these can be used with Log Pulse. This has not be thoroughly tested however and is more of just a theoretical.
 
 ## Building
-Log Pulse is a raw Go application so it should be trivial to build both for your own platform and for cross-platform, assuming [you have a Go environment properly setup](https://golang.org/doc/install). To compile for your own platform just run:
+Log Pulse is a raw Go application so it should be trivial to build both for your own platform and for cross-platform, assuming [you have a Go environment properly setup](https://golang.org/doc/install). Dependencies are vendored using [Glide](https://github.com/Masterminds/glide) and can be installed with:
+```
+glide install
+```
+To compile for your own platform just run:
 ```
 go build
 ```
