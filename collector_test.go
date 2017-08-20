@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/publisher/beat"
 
 	"github.com/elastic/beats/filebeat/harvester"
 	"github.com/elastic/beats/filebeat/util"
@@ -60,7 +60,7 @@ func TestCollectorOutleterOnEvent(t *testing.T) {
 	data = util.NewData()
 	data.Event = beat.Event{
 		Fields: common.MapStr{
-			"NotaMessage": "Hi",
+			"message": 10,
 		},
 	}
 	assert.True(t, outleter.OnEvent(data))
