@@ -4,94 +4,81 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParseConfigFile(t *testing.T) {
-	tmpfile, err := ioutil.TempFile("", "testing.yml")
-	assert.Nil(t, err)
-	defer os.Remove(tmpfile.Name())
-
-	data := `
-- file: /var/log/nginx.log
+func TestParseConfig(t *testing.T) {
+	// Be careful with your text editor; YAML handles tabs weird so make sure your
+	// editor doesn't automatically convert the 4 space indentations.
+	var data = `
+- type: log
+  paths:
+    - /var/tests/*.log
   pattern: .*
   command:
-      program: nginx
+    program: echo
+    args:
+      - "Hello, World"
+  timeout:
+    interval: 30s
+    once: true
+    command:
+      program: ohce
       args:
-        - "-s"
-        - "reload"
-  timeout: 40
-  timeoutOnce: true
-  timeoutCommand:
-      program: "hello/world"
+        - "World, Hello"
 
-- file: /var/log/supervisord.log
-  pattern: ERROR
-  command:
-      program: supervisorctl
-      args:
-        - reload
-  poll: true
-  pipe: true
-  maxLineSize: 50
-  mustExist: true
+- type: log
+  paths: ["/var/tests/*.log"]
+  pattern: .*
+  command.program: echo
+  command.args: ["Hello, World"]
+  timeout.interval: 30s
+  timeout.once: true
+  timeout.command.program: ohce
+  timeout.command.args: ["World, Hello"]
 `
-	_, err = tmpfile.Write([]byte(data))
-	assert.Nil(t, err)
+	tmpFile, _ := ioutil.TempFile("", "test.yml")
+	defer os.Remove(tmpFile.Name())
+	tmpFile.Write([]byte(data))
 
-	config, err := ParseConfigFile(tmpfile.Name())
+	config, rawConfigs, err := ParseConfigFile(tmpFile.Name())
 	assert.Nil(t, err)
-
 	assert.NotNil(t, config)
-	assert.Len(t, config, 2)
+	assert.NotNil(t, rawConfigs)
 
-	assert.Equal(t, "/var/log/nginx.log", config[0].File)
-	assert.Equal(t, ".*", config[0].Pattern)
-	assert.Equal(t, "nginx", config[0].Command.Program)
-	assert.Equal(t, "-s", config[0].Command.Args[0])
-	assert.Equal(t, "reload", config[0].Command.Args[1])
-	assert.Equal(t, 40, config[0].Timeout)
-	assert.Equal(t, true, config[0].TimeoutOnce)
-	assert.Equal(t, "hello/world", config[0].TimeoutCommand.Program)
-
-	assert.Equal(t, "/var/log/supervisord.log", config[1].File)
-	assert.Equal(t, "ERROR", config[1].Pattern)
-	assert.Equal(t, "supervisorctl", config[1].Command.Program)
-	assert.Equal(t, "reload", config[1].Command.Args[0])
-	assert.Equal(t, true, config[1].Poll)
-	assert.Equal(t, true, config[1].Pipe)
-	assert.Equal(t, 50, config[1].MaxLineSize)
-	assert.Equal(t, true, config[1].MustExist)
+	for _, conf := range *config {
+		assert.Equal(t, "log", conf.Type)
+		assert.Equal(t, "/var/tests/*.log", conf.Paths[0])
+		assert.Equal(t, ".*", conf.Pattern)
+		assert.Equal(t, "echo", conf.Command.Program)
+		assert.Equal(t, "Hello, World", conf.Command.Args[0])
+		assert.Equal(t, 30*time.Second, conf.Timeout.Interval)
+		assert.Equal(t, true, conf.Timeout.Once)
+		assert.Equal(t, "ohce", conf.Timeout.Command.Program)
+		assert.Equal(t, "World, Hello", conf.Timeout.Command.Args[0])
+	}
 }
 
-// Will only work on Unix
-func TestCommandCmd(t *testing.T) {
-	testFile := "/tmp/log-pulse-test.file"
-	commandConfig := CommandConfig{
-		Program: "/usr/bin/touch",
-		Args:    []string{testFile},
-	}
+func TestSetProspectorDefaults(t *testing.T) {
+	var data = `
+- type: log
+  paths: ["/var/tests/*.log"]
+  pattern: .*
+`
+	config, rawConfig, err := ParseConfig([]byte(data))
+	assert.Nil(t, err)
+	assert.NotNil(t, config)
+	assert.NotNil(t, rawConfig)
 
-	os.Remove(testFile)
-	err := commandConfig.Cmd().Run()
-	defer os.Remove(testFile)
+	testConfig := prospectorConfig{}
+	err = rawConfig[0].Unpack(&testConfig)
 	assert.Nil(t, err)
-	info, err := os.Stat(testFile)
-	assert.Nil(t, err)
-	assert.NotNil(t, info)
 
-	// Make sure path resolution works
-	commandConfig = CommandConfig{
-		Program: "touch",
-		Args:    []string{testFile},
-	}
-	os.Remove(testFile)
-	err = commandConfig.Cmd().Run()
-	defer os.Remove(testFile)
-	assert.Nil(t, err)
-	info, err = os.Stat(testFile)
-	assert.Nil(t, err)
-	assert.NotNil(t, info)
-
+	assert.Equal(t, true, testConfig.TailFiles)
+	assert.Equal(t, 250*time.Millisecond, testConfig.Backoff)
+	assert.Equal(t, 1, testConfig.BackoffFactor)
+	assert.Equal(t, 1*time.Second, testConfig.MaxBackoff)
+	assert.Equal(t, 3*time.Second, testConfig.ScanFrequency)
 }
