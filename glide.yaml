@@ -1,4 +1,4 @@
-package: github.com/Ssawa/file-test
+package: github.com/cj-dimaggio/log-pulse
 import:
 - package: github.com/elastic/beats
   version: ^6.0.0-beta1
